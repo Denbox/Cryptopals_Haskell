@@ -1,8 +1,13 @@
 module Utils
 ( hexToBin
+, intToBin
+, binToInt
 , binToHex
 , binToB64
+, binToAscii
 , xor
+, zpadBin
+, splitLen
 ) where
 
 import Data.Char
@@ -41,11 +46,11 @@ split6 [] = []
 split6 (a:b:c:d:e:f:xs) = [[a,b,c,d,e,f]] ++ split6 xs
 split6 lessThan6 = [lessThan6 ++ replicate (6 - length lessThan6) 0]
 
--- split_len :: Int -> [a] -> [[a]]
--- split_len _ [] = []
--- split_len n list
---   | n <= 0 = list
---   | otherwise [take n list] ++ split_len (drop n list)
+splitLen :: Int -> [a] -> [[a]]
+splitLen _ [] = []
+splitLen n list
+  | n <= 0 = [list]
+  | otherwise = [take n list] ++ splitLen n (drop n list)
 --
 -- pad_right_to :: Int -> a -> [a] -> [a]
 -- pad_to n val list = list
@@ -68,6 +73,14 @@ binToB64 bits =
     end_pad = concat (replicate end_pad_len "=")
   in
     b64 ++ end_pad
+
+binToAscii :: [Int] -> [Char]
+binToAscii bits =
+  let
+    ints = map binToInt $ splitLen 8 bits
+    ascii = map chr ints
+  in
+    ascii
 
 xor :: [Int] -> [Int] -> [Int]
 xor a b = zipWith (\x y -> if x /= y then 1 else 0) a b
