@@ -10,6 +10,10 @@ module Utils
 , zpad
 , splitLen
 , englishScore
+, asciiXor
+, xorKeyExhaust
+, compareScore
+, bestDecrypt
 ) where
 
 import Data.Char
@@ -76,5 +80,16 @@ asciiToBin (x:xs) = ((zpad 8) . intToBin . ord) x ++ asciiToBin xs
 xor :: [Int] -> [Int] -> [Int]
 xor a b = zipWith (\x y -> if x /= y then 1 else 0) a b
 
+asciiXor :: [Char] -> [Char] -> [Char]
+asciiXor a b = binToAscii $ xor (asciiToBin a) (asciiToBin b)
+
 englishScore :: [Char] -> Int
 englishScore string = sum (map (\x -> if elem x "ETAOINSHRDLUetaoinshrdlu " then 1 else 0) string)
+
+xorKeyExhaust :: [Char] -> [Char] -> [([Char], Char)]
+xorKeyExhaust cipher keys = map (\key -> (asciiXor cipher (cycle [key]), key)) keys
+
+compareScore decryptA decryptB = compare (englishScore $ fst decryptA) (englishScore $ fst decryptB)
+
+bestDecrypt :: [([Char], Char)] -> ([Char], Char)
+bestDecrypt candidates = maximumBy compareScore candidates
