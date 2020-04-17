@@ -4,6 +4,7 @@ module Utils
 , binToInt
 , binToHex
 , binToB64
+, b64ToBin
 , binToAscii
 , asciiToBin
 , xor
@@ -14,6 +15,7 @@ module Utils
 , xorKeyExhaust
 , compareScore
 , bestDecrypt
+, hamming
 ) where
 
 import Data.Char
@@ -35,11 +37,9 @@ zpad :: Int -> [Int] -> [Int]
 zpad len bin = if length bin < len then zpad len (0:bin) else bin
 
 hexToBin :: [Char] -> [Int]
-hexToBin [] = []
-hexToBin (x:xs) = zpad 4 (intToBin $ hexToInt x) ++ hexToBin xs
+hexToBin hex = concatMap ((zpad 4) . intToBin . hexToInt) hex
 
 binToInt :: [Int] -> Int
-binToInt [] = 0
 binToInt bits = sum [fst x * (2^(snd x)) | x <- zip (reverse bits) [0..]]
 
 splitLen :: Int -> [a] -> [[a]]
@@ -64,6 +64,13 @@ binToB64 bits =
     end_pad = concat (replicate end_pad_len "=")
   in
     b64 ++ end_pad
+
+b64ToInt :: Char -> Int
+b64ToInt b64 = fromJust $ elemIndex b64 b64Encoding
+
+b64ToBin :: [Char] -> [Int]
+b64ToBin b64 = concatMap ((zpad 6) . intToBin . b64ToInt) $ takeWhile (/= '=') b64
+
 
 binToAscii :: [Int] -> [Char]
 binToAscii bits =
@@ -93,3 +100,6 @@ compareScore decryptA decryptB = compare (englishScore $ fst decryptA) (englishS
 
 bestDecrypt :: [([Char], Char)] -> ([Char], Char)
 bestDecrypt candidates = maximumBy compareScore candidates
+
+hamming :: [Int] -> [Int] -> Int
+hamming a b = sum $ xor a b
