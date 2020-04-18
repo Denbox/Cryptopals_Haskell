@@ -92,7 +92,15 @@ asciiXor :: [Char] -> [Char] -> [Char]
 asciiXor a b = binToAscii $ xor (asciiToBin a) (asciiToBin b)
 
 englishScore :: [Char] -> Int
-englishScore string = sum (map (\x -> if elem x "ETAOINSHRDLUetaoinshrdlu " then 1 else 0) string)
+-- englishScore string = sum (map (\x -> if elem x "ETAOINSHRDLUetaoinshrdlu " then 1 else 0) string)
+englishScore [] = 0
+englishScore (x:xs)
+  | x == ' ' = 8 + englishScore xs
+  | elem x "ETAOINSHRDLUetaoinshrdlu" = 6 + englishScore xs
+  | elem x (['A'..'Z'] ++ ['a'..'z']) = 3 + englishScore xs
+  | elem x "?!.\"\'\n-" = 0 + englishScore xs
+  | elem (ord x) [32..126] = -5 + englishScore xs
+  | otherwise = -500 + englishScore xs
 
 xorKeyExhaust :: [Char] -> [Char] -> [([Char], Char)]
 xorKeyExhaust ciphertext keys = map (\key -> (asciiXor ciphertext (cycle [key]), key)) keys

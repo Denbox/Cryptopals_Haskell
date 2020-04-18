@@ -18,4 +18,6 @@ main = do
   let hammings_by_size = map (\n -> (n, depthHamming n ciphertext)) possible_key_sizes
   let key_sizes = map fst (sortBy compareSnd hammings_by_size)
   let readable_ciphertext = binToAscii ciphertext
-  putStr $ decrypt readable_ciphertext (head key_sizes)
+  let solution = decrypt readable_ciphertext (head key_sizes)
+  putStr solution
+  print $ last solution
