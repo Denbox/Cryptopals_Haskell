@@ -45,7 +45,9 @@ binToInt bits = sum [fst x * (2^(snd x)) | x <- zip (reverse bits) [0..]]
 
 splitLen :: Int -> [a] -> [[a]]
 splitLen _ [] = []
-splitLen n list = [take n list] ++ splitLen n (drop n list)
+splitLen n list
+  | length list > n = [take n list] ++ splitLen n (drop n list)
+  | otherwise = [take n list]
 
 binToHex :: [Int] -> [Char]
 binToHex bits =
@@ -70,7 +72,12 @@ b64ToInt :: Char -> Int
 b64ToInt b64 = fromJust $ elemIndex b64 b64Encoding
 
 b64ToBin :: [Char] -> [Int]
-b64ToBin b64 = concatMap ((zpad 6) . intToBin . b64ToInt) $ takeWhile (/= '=') b64
+b64ToBin b64 =
+  let
+    decoding = concatMap ((zpad 6) . intToBin . b64ToInt) $ takeWhile (/= '=') b64
+    dropRemainder list = take ((div (length list) 8) * 8) list
+  in
+    dropRemainder decoding
 
 
 binToAscii :: [Int] -> [Char]
@@ -93,14 +100,17 @@ asciiXor a b = binToAscii $ xor (asciiToBin a) (asciiToBin b)
 
 englishScore :: [Char] -> Int
 -- englishScore string = sum (map (\x -> if elem x "ETAOINSHRDLUetaoinshrdlu " then 1 else 0) string)
+-- englishScore string = sum (map (\x -> if elem (ord x) [32..126] then 1 else 0) string)
 englishScore [] = 0
 englishScore (x:xs)
   | x == ' ' = 8 + englishScore xs
   | elem x "ETAOINSHRDLUetaoinshrdlu" = 6 + englishScore xs
   | elem x (['A'..'Z'] ++ ['a'..'z']) = 3 + englishScore xs
   | elem x "?!.\"\'\n-" = 0 + englishScore xs
-  | elem (ord x) [32..126] = -5 + englishScore xs
+  | elem (ord x) [32..126] = -1 + englishScore xs
   | otherwise = -500 + englishScore xs
+
+-- englishScore text = sum (map (\x -> fromEnum (elem x ([' '] ++ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']))) text)
 
 xorKeyExhaust :: [Char] -> [Char] -> [([Char], Char)]
 xorKeyExhaust ciphertext keys = map (\key -> (asciiXor ciphertext (cycle [key]), key)) keys
