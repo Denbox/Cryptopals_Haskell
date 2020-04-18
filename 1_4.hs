@@ -4,7 +4,7 @@ import Control.Monad
 
 main = do
   contents <- readFile "1_4.txt"
-  let ciphers = map (binToAscii . hexToBin) $ lines contents
+  let ciphertexts = map (binToAscii . hexToBin) $ lines contents
   let keys = [' '..'~'] -- printable ascii
-  let eachCipherBest = map (\cipher -> bestDecrypt (xorKeyExhaust cipher keys)) ciphers
+  let eachCipherBest = map (\ciphertext -> bestDecrypt (xorKeyExhaust ciphertext keys)) ciphertexts
   print $ bestDecrypt eachCipherBest

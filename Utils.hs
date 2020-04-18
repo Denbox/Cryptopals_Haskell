@@ -16,6 +16,7 @@ module Utils
 , compareScore
 , bestDecrypt
 , hamming
+, depthHamming
 ) where
 
 import Data.Char
@@ -94,7 +95,7 @@ englishScore :: [Char] -> Int
 englishScore string = sum (map (\x -> if elem x "ETAOINSHRDLUetaoinshrdlu " then 1 else 0) string)
 
 xorKeyExhaust :: [Char] -> [Char] -> [([Char], Char)]
-xorKeyExhaust cipher keys = map (\key -> (asciiXor cipher (cycle [key]), key)) keys
+xorKeyExhaust ciphertext keys = map (\key -> (asciiXor ciphertext (cycle [key]), key)) keys
 
 compareScore decryptA decryptB = compare (englishScore $ fst decryptA) (englishScore $ fst decryptB)
 
@@ -103,3 +104,11 @@ bestDecrypt candidates = maximumBy compareScore candidates
 
 hamming :: [Int] -> [Int] -> Int
 hamming a b = sum $ xor a b
+
+depthHamming :: Int -> [Int] -> Float
+depthHamming key_size ciphertext =
+  let
+    chunks = splitLen key_size ciphertext
+    hammings = zipWith hamming chunks (tail chunks)
+  in
+    (fromIntegral (sum hammings)) / (fromIntegral $ (length hammings) * key_size)
